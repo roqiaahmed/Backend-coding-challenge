@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
-// const controller = require('../controllers/index');
+const { createBill } = require('../controllers/bill-controllers');
 
-router.get('/', (req, res) => {
-  res.send('Welcome to the API');
-});
+router.post('/', createBill);
 
 module.exports = router;
