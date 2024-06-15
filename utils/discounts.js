@@ -1,36 +1,23 @@
 class Discounts {
-  static discounts = 0;
-  constructor(item, quantity) {
-    this.item = item;
-    this.quantity = quantity;
+  static discount = 0;
+  static discounts_format = [];
+
+  constructor(projects, items) {
+    this.items = items;
+    this.projects = projects;
   }
 
-  getShoseOffer() {
-    const offer = (this.item[0].price * this.quantity * 10) / 100;
-    Discounts.discounts += offer;
-    const percent = (offer * 100) / (this.item[0].price * this.quantity);
-    return `${percent}% off ${this.quantity} of ${this.item[0].Item}: -${offer}`;
+  getAllDiscounts() {
+    return Discounts.discount;
   }
 
-  getJacketsOffer(tops) {
-    let offer = (((tops / 2) * 50) / 100) * this.item[0].price;
-    let percent = (offer * 100) / (this.item[0].price * this.quantity);
-    if (percent >= 100) {
-      percent = 100;
-      offer = this.item[0].price * this.quantity;
-    }
-    Discounts.discounts += offer;
-    return `${percent}% off ${this.quantity} of ${this.item[0].Item}: -${offer}`;
+  getDiscountsFormat() {
+    return Discounts.discounts_format;
   }
 
-  getTwoItemsOffer(shipping) {
-    const offer = (shipping * 10) / 100;
-    Discounts.discounts += offer;
-    return `10% off shipping: -${offer}`;
-  }
-
-  static getAllDiscounts() {
-    return Discounts.discounts;
+  static clear() {
+    Discounts.discount = 0;
+    Discounts.discounts_format = [];
   }
 }
 

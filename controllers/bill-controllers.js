@@ -1,73 +1,44 @@
 const projectsCollection = require('../db/projects-db');
-const BillCart = require('../utils/billcart');
-const Discounts = require('../utils/discounts');
+const BillCart = require('../utils/BillCart');
+const Discounts = require('../utils/Discounts');
+const ShoseOffer = require('../utils/ShoseOffer');
+const JacketOffer = require('../utils/JacketOffer');
+const TwoItemsOffer = require('../utils/TwoItemsOffer');
+const ShippingCost = require('../utils/ShippingCost');
+const VAT = require('../utils/VAT');
+const Subtotal = require('../utils/Subtotal');
 
 const createBill = async (req, res) => {
   const body = req.body;
   const projects = await projectsCollection(req.app.locals.db);
   const card = {};
-  const discounts = [];
-  const tops = ['T-shirt', 'Blouse'];
-  const jacket = {};
-  let n_tops = 0;
 
-  const promises = body.map(async (element) => {
-    const item = await projects.find({ Item: element.item }).toArray();
-    const quantity = element.quantity;
-    const calculatItem = new BillCart(item, quantity);
+  const subtotal = new Subtotal(projects, body);
+  const shippingCost = new ShippingCost(projects, body);
+  const vat = new VAT(projects, body);
 
-    card.Subtotal = card.Subtotal
-      ? card.Subtotal + calculatItem.getSubtotal()
-      : calculatItem.getSubtotal();
+  await subtotal.getSubtotal();
+  await shippingCost.getShippingCost();
+  await vat.getVAT();
 
-    card.Shipping = card.Shipping
-      ? card.Shipping + calculatItem.getShippingCost()
-      : calculatItem.getShippingCost();
+  card.Subtotal = BillCart.subtotal.toFixed(2);
+  card.Shipping = BillCart.shipping.toFixed(2);
+  card.VAT = BillCart.VAT.toFixed(2);
 
-    card.VAT = card.VAT
-      ? card.VAT + calculatItem.getVAT()
-      : calculatItem.getVAT();
+  const shoseOffer = new ShoseOffer(projects, body);
+  const jacketOffer = new JacketOffer(projects, body);
+  const twoItemsOffer = new TwoItemsOffer(projects, body);
 
-    if (item[0].Item === 'Shoes') {
-      const ShoesDiscount = new Discounts(item, quantity);
-      discounts.push(ShoesDiscount.getShoseOffer());
-    }
-    if (item[0].Item === 'Jacket') {
-      jacket.item = item;
-      jacket.quantity = quantity;
-    }
+  await jacketOffer.getAllDiscounts();
+  await shoseOffer.getAllDiscounts();
+  await twoItemsOffer.getAllDiscounts(BillCart.shipping);
 
-    if (tops.includes(item[0].Item)) {
-      n_tops += quantity;
-    }
-  });
-
-  await Promise.all(promises)
-    .then(async () => {
-      if (Object.keys(jacket).length >= 1 && n_tops >= 2) {
-        const jacketDiscount = new Discounts(jacket.item, jacket.quantity);
-        discounts.push(jacketDiscount.getJacketsOffer(n_tops));
-      }
-
-      if (body.length >= 2 || body[0].quantity >= 2) {
-        const discount = new Discounts(body[0].item, body[0].quantity);
-        discounts.push(discount.getTwoItemsOffer(card.Shipping));
-      }
-
-      if (discounts.length >= 1) {
-        card.Discounts = discounts;
-      }
-      if (Discounts.getAllDiscounts() > 0) {
-        card.Total =
-          Discounts.getAllDiscounts() > 0
-            ? BillCart.getTotal() - Discounts.getAllDiscounts()
-            : BillCart.getTotal();
-      }
-    })
-    .catch((error) => {
-      console.error('Error occurred:', error);
-    });
-
+  if (Discounts.discounts_format.length >= 1) {
+    card.Discounts = Discounts.discounts_format;
+  }
+  card.Total = BillCart.total - Discounts.discount;
+  BillCart.clear();
+  Discounts.clear();
   res.send({ card });
 };
 

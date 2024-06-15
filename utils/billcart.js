@@ -1,32 +1,19 @@
 class BillCart {
-  static total = 0;
-  constructor(item, quantity) {
-    this.item = item;
-    this.quantity = quantity;
+  static total = 0.0;
+  static shipping = 0.0;
+  static subtotal = 0.0;
+  static VAT = 0.0;
+
+  constructor(projects, items) {
+    this.projects = projects;
+    this.items = items;
   }
 
-  getSubtotal() {
-    const subtotal = this.item[0].price * this.quantity;
-    BillCart.total += subtotal;
-    return subtotal;
-  }
-
-  getShippingCost() {
-    const country = this.item[0].Country;
-    const shipping =
-      (this.quantity * this.item[0].Weight * process.env[country] * 1000) / 100;
-    BillCart.total += shipping;
-    return shipping;
-  }
-
-  getVAT() {
-    const VAT = (this.quantity * process.env.VAT * this.item[0].price) / 100;
-    BillCart.total += VAT;
-    return VAT;
-  }
-
-  static getTotal() {
-    return BillCart.total;
+  static clear() {
+    BillCart.total = 0.0;
+    BillCart.shipping = 0.0;
+    BillCart.subtotal = 0.0;
+    BillCart.VAT = 0.0;
   }
 }
 
