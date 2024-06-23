@@ -18,7 +18,9 @@ class JacketOffer extends Discounts {
       }
       const quantity = jacketItem['quantity'];
       const jacket = await this.projects.find({ Item: 'Jacket' }).toArray();
-      let offer = (((this.n_tops / 2) * 50) / 100) * jacket[0].price;
+      let n = Math.floor(this.n_tops / 2);
+      let offer = ((n * 50) / 100) * jacket[0].price;
+      console.log(offer);
       let percent = (offer * 100) / (jacket[0].price * quantity);
       if (percent >= 100) {
         percent = 100;
