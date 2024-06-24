@@ -13,8 +13,13 @@ class ShippingCost extends BillCart {
       const key = Object.keys(this.items)[i];
       const quantity = this.items[key]['quantity'];
       const country = item[0].Country;
+      if (quantity <= 0) {
+        continue;
+      }
       const shipping =
-        (quantity * item[0].Weight * process.env[country] * 1000) / 100;
+        (quantity * item[0].Weight * parseInt(process.env[country]) * 1000) /
+        100;
+
       BillCart.shipping += shipping;
       BillCart.total += shipping;
     }

@@ -10,6 +10,9 @@ class Subtotal extends BillCart {
       const key = Object.keys(this.items)[i];
       const item = await this.projects.find({ Item: key }).toArray();
       const quantity = this.items[key]['quantity'];
+      if (quantity <= 0) {
+        continue;
+      }
       const subtotal = item[0].price * quantity;
       BillCart.subtotal += subtotal;
       BillCart.total += subtotal;

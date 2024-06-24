@@ -12,7 +12,9 @@ class VAT extends BillCart {
         .toArray();
       const key = Object.keys(this.items)[i];
       const quantity = this.items[key]['quantity'];
-
+      if (quantity <= 0) {
+        continue;
+      }
       const VAT = (quantity * process.env.VAT * item[0].price) / 100;
 
       BillCart.VAT += VAT;
