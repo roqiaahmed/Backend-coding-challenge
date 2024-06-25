@@ -7,15 +7,18 @@ const TwoItemsOffer = require('../utils/TwoItemsOffer');
 const ShippingCost = require('../utils/ShippingCost');
 const VAT = require('../utils/VAT');
 const Subtotal = require('../utils/Subtotal');
+const getCrrencyRate = require('../utils/currency');
+const exchangeCurrency = require('../utils/exchangeCurrency');
 
 const createBill = async (req, res) => {
-  const body = req.body;
+  const { items, currency } = req.body;
   const projects = await projectsCollection(req.app.locals.db);
-  const card = {};
+  let card = {};
+  let currencyValue = 1;
 
-  const subtotal = new Subtotal(projects, body);
-  const shippingCost = new ShippingCost(projects, body);
-  const vat = new VAT(projects, body);
+  const subtotal = new Subtotal(projects, items);
+  const shippingCost = new ShippingCost(projects, items);
+  const vat = new VAT(projects, items);
 
   await subtotal.getSubtotal();
   await shippingCost.getShippingCost();
@@ -25,9 +28,9 @@ const createBill = async (req, res) => {
   card.Shipping = BillCart.shipping.toFixed(2);
   card.VAT = BillCart.VAT.toFixed(2);
 
-  const shoseOffer = new ShoseOffer(projects, body);
-  const jacketOffer = new JacketOffer(projects, body);
-  const twoItemsOffer = new TwoItemsOffer(projects, body);
+  const shoseOffer = new ShoseOffer(projects, items);
+  const jacketOffer = new JacketOffer(projects, items);
+  const twoItemsOffer = new TwoItemsOffer(projects, items);
 
   await jacketOffer.getAllDiscounts();
   await shoseOffer.getAllDiscounts();
@@ -36,9 +39,18 @@ const createBill = async (req, res) => {
   if (Discounts.discounts_format.length >= 1) {
     card.Discounts = Discounts.discounts_format;
   }
-  card.Total = BillCart.total - Discounts.discount;
+
+  const total = BillCart.total - Discounts.discount;
+  card.Total = total.toFixed(2);
+
   BillCart.clear();
   Discounts.clear();
+
+  if (currency) {
+    currencyValue = await getCrrencyRate(currency);
+    card = exchangeCurrency(card, currencyValue);
+    card.Currency = currency;
+  }
   res.send({ card });
 };
 

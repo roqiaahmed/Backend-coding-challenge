@@ -18,18 +18,20 @@ class JacketOffer extends Discounts {
       }
       const quantity = jacketItem['quantity'];
       const jacket = await this.projects.find({ Item: 'Jacket' }).toArray();
+
       let n = Math.floor(this.n_tops / 2);
       let offer = ((n * 50) / 100) * jacket[0].price;
-      console.log(offer);
       let percent = (offer * 100) / (jacket[0].price * quantity);
       if (percent >= 100) {
         percent = 100;
         offer = jacket[0].price * quantity;
       }
       Discounts.discount += offer;
-      Discounts.discounts_format.push(
-        `${percent}% off ${quantity} of ${jacket[0].Item}: -${offer}`
-      );
+      if (n >= 1) {
+        Discounts.discounts_format.push(
+          `${percent}% off ${quantity} of ${jacket[0].Item}: -${offer}`
+        );
+      }
     }
   }
 }
